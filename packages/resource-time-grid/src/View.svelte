@@ -1,4 +1,4 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
     import {getContext} from 'svelte';
     import {setContent, toISOString} from '@event-calendar/core';
@@ -7,10 +7,10 @@
 
     let {datesAboveResources, _viewDates, _viewResources, _intlDayHeader, _intlDayHeaderAL, allDaySlot, theme} = getContext('state');
 
-    let loops;
-    $: loops = $datesAboveResources ? [$_viewDates, $_viewResources] : [$_viewResources, $_viewDates];
+    let loops = $derived($datesAboveResources ? [$_viewDates, $_viewResources] : [$_viewResources, $_viewDates]);
+    
 
-    let resourceLabels = [];
+    let resourceLabels = $state([]);
 </script>
 
 <div class="{$theme.header}">

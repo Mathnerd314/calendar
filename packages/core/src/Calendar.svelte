@@ -1,7 +1,7 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
     import './styles/index.scss';
-    import {setContext, beforeUpdate, afterUpdate} from 'svelte';
+    import {setContext} from 'svelte';
     import {get} from 'svelte/store';
     import {diff} from './storage/options';
     import State from './storage/state';
@@ -22,10 +22,9 @@
         prevDate, nextDate
     } from './lib.js';
 
-    export let plugins = [];
-    export let options = {};
+    let { plugins = [], options = {} } = $props();
 
-    let state = new State(plugins, options);
+    let state = $state(new State(plugins, options));
     setContext('state', state);
 
     let {_viewComponent, _bodyEl, _interaction, _iClass, _events, _queue, _queue2, _tasks, _scrollable,
@@ -33,9 +32,6 @@
 
     // Reactively update options that did change
     let prevOptions = {...options};
-    $: for (let [name, value] of diff(options, prevOptions)) {
-        setOption(name, value);
-    }
 
     export function setOption(name, value) {
         state._set(name, value);
@@ -123,6 +119,8 @@
         return this;
     }
 
+    /*
+    <!-- @migration-task Error while migrating Svelte code: Can't migrate code with beforeUpdate and afterUpdate. Please migrate by hand. -->
     beforeUpdate(() => {
         flushDebounce($_queue);
     });
@@ -131,12 +129,20 @@
         flushDebounce($_queue2);
         task(recheckScrollable, null, _tasks);
     });
+    */
 
     function recheckScrollable() {
         if ($_bodyEl) {
             $_scrollable = hasYScroll($_bodyEl);
         }
     }
+    $effect(() => {
+        for (let [name, value] of diff(options, prevOptions)) {
+            setOption(name, value);
+        }
+    });
+
+    const SvelteComponent = $derived($_viewComponent);
 </script>
 
 <div
@@ -145,8 +151,8 @@
     role="{listView($view) ? 'list' : 'table'}"
 >
     <Toolbar/>
-    <svelte:component this={$_viewComponent}/>
+    <SvelteComponent/>
 </div>
 <Auxiliary/>
 
-<svelte:window on:resize={recheckScrollable}/>
+<svelte:window onresize={recheckScrollable}/>

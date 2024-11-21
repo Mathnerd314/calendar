@@ -1,27 +1,30 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext, onMount} from 'svelte';
     import {setContent, toLocalDate, isFunction} from '@event-calendar/core';
 
-    export let resource;
-    export let date = undefined;
+    let { resource, date = undefined } = $props();
 
     let {resourceLabelContent, resourceLabelDidMount} = getContext('state');
 
-    let el;
-    let content;
+    let el = $state();
+    let content = $state();
 
     // Content
-    $: if ($resourceLabelContent) {
-        content = isFunction($resourceLabelContent)
-            ? $resourceLabelContent({
-                resource,
-                date: date ? toLocalDate(date) : undefined,
-            })
-            : $resourceLabelContent;
-    } else {
-        content = resource.title;
-    }
+    run(() => {
+        if ($resourceLabelContent) {
+            content = isFunction($resourceLabelContent)
+                ? $resourceLabelContent({
+                    resource,
+                    date: date ? toLocalDate(date) : undefined,
+                })
+                : $resourceLabelContent;
+        } else {
+            content = resource.title;
+        }
+    });
 
     onMount(() => {
         if (isFunction($resourceLabelDidMount)) {

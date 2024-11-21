@@ -1,5 +1,7 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {
         cloneDate,
@@ -11,33 +13,34 @@
     } from '@event-calendar/core';
     import Day from './Day.svelte';
 
-    export let dates;
-    export let resource = undefined;
+    let { dates, resource = undefined } = $props();
 
     let {_events, _iEvents, _queue2, hiddenDays, resources, filterEventsWithResources} = getContext('state');
 
-    let chunks, bgChunks, longChunks, iChunks = [];
+    let chunks = $state(), bgChunks = $state(), longChunks = $state(), iChunks = $state([]);
 
-    let start;
-    let end;
-    let refs = [];
-    let resourceFilter;
+    let start = $state();
+    let end = $state();
+    let refs = $state([]);
+    let resourceFilter = $state();
 
-    $: {
+    run(() => {
         start = dates[0];
         end = addDay(cloneDate(dates.at(-1)));
-    }
+    });
 
-    $: resourceFilter = resource ?? (
-        $filterEventsWithResources ? $resources : undefined
-    );
+    run(() => {
+        resourceFilter = resource ?? (
+            $filterEventsWithResources ? $resources : undefined
+        );
+    });
 
     let debounceHandle = {};
     function reposition() {
         debounce(() => runReposition(refs, dates), debounceHandle, _queue2);
     }
 
-    $: {
+    run(() => {
         chunks = [];
         bgChunks = [];
         for (let event of $_events) {
@@ -54,17 +57,19 @@
         longChunks = prepareEventChunks(chunks, $hiddenDays);
         // Run reposition only when events get changed
         reposition();
-    }
+    });
 
-    $: iChunks = $_iEvents.map(event => {
-        let chunk;
-        if (event && event.allDay && eventIntersects(event, start, end, resource)) {
-            chunk = createEventChunk(event, start, end);
-            prepareEventChunks([chunk], $hiddenDays);
-        } else {
-            chunk = null;
-        }
-        return chunk;
+    run(() => {
+        iChunks = $_iEvents.map(event => {
+            let chunk;
+            if (event && event.allDay && eventIntersects(event, start, end, resource)) {
+                chunk = createEventChunk(event, start, end);
+                prepareEventChunks([chunk], $hiddenDays);
+            } else {
+                chunk = null;
+            }
+            return chunk;
+        });
     });
 </script>
 
@@ -72,4 +77,4 @@
     <Day {date} {chunks} {bgChunks} {longChunks} {iChunks} {resource} bind:this={refs[i]} />
 {/each}
 
-<svelte:window on:resize={reposition}/>
+<svelte:window onresize={reposition}/>

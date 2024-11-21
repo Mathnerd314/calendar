@@ -1,6 +1,6 @@
 <svelte:options runes={false} />
 <script>
-    import {getContext, afterUpdate} from 'svelte';
+    import {getContext} from 'svelte';
     import {max} from '@event-calendar/core';
     import Label from './Label.svelte';
     import Expander from './Expander.svelte';
@@ -9,9 +9,8 @@
 
     let titleHeight = 0;
 
-    afterUpdate(() => {
-        titleHeight = $_headerEl.clientHeight;
-    });
+    // <!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
+    $: titleHeight = $_headerEl.clientHeight;
 </script>
 
 <div class="{$theme.sidebar}">

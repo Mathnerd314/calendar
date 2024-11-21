@@ -1,5 +1,7 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {addDuration, cloneDate, getElementWithPayload, getPayload} from '@event-calendar/core';
 
@@ -7,9 +9,6 @@
 
     let x = 0, y = 0;
 
-    $: if ($_iEvents[0]) {
-        removePointerEvent();
-    }
 
     export function leave(jsEvent) {
         if (validEvent(jsEvent)) {
@@ -65,9 +64,14 @@
     function validEvent(jsEvent) {
         return jsEvent.isPrimary && jsEvent.pointerType === 'mouse';
     }
+    run(() => {
+        if ($_iEvents[0]) {
+            removePointerEvent();
+        }
+    });
 </script>
 
 <svelte:window
-    on:pointermove={handlePointerMove}
-    on:scroll={handleScroll}
+    onpointermove={handlePointerMove}
+    onscroll={handleScroll}
 />

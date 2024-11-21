@@ -1,6 +1,6 @@
 <svelte:options runes={false} />
 <script>
-    import {getContext, onMount, afterUpdate, createEventDispatcher} from 'svelte';
+    import {getContext, onMount, createEventDispatcher} from 'svelte';
     import {setContent, toLocalDate, isFunction} from '@event-calendar/core';
 
     export let resource;
@@ -36,14 +36,12 @@
         }
     });
 
-    afterUpdate(() => {
-        if (date) {
+    $: if (date) {
             ariaLabel = $_intlDayHeaderAL.format(date) + ', ' + el.innerText;
         } else {
             ariaLabel = undefined;
             dispatch('text', el.innerText);
         }
-    });
 </script>
 
 <span

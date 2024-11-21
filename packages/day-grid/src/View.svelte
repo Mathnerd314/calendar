@@ -1,4 +1,4 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
     import Header from './Header.svelte';
     import Body from './Body.svelte';

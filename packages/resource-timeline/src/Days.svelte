@@ -1,5 +1,7 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {
         cloneDate, addDay, eventIntersects, createEventChunk,
@@ -8,24 +10,24 @@
     import {getSlotTimeLimits, prepareEventChunks} from './lib.js';
     import Day from './Day.svelte';
 
-    export let resource;
+    let { resource } = $props();
 
     let {_viewDates, _events, _iEvents, _queue2, _resHs, _dayTimeLimits, slotDuration, theme} = getContext('state');
 
-    let chunks, bgChunks, longChunks, iChunks = [];
+    let chunks = $state(), bgChunks = $state(), longChunks = $state(), iChunks = $state([]);
 
-    let start;
-    let end;
-    let refs = [];
-    let height = 0;
+    let start = $state();
+    let end = $state();
+    let refs = $state([]);
+    let height = $state(0);
 
-    $: {
+    run(() => {
         start = $_viewDates[0];
         let slotTimeLimits = getSlotTimeLimits($_dayTimeLimits, $_viewDates.at(-1));
         end = slotTimeLimits.max.seconds > DAY_IN_SECONDS
             ? addDuration(cloneDate($_viewDates.at(-1)), slotTimeLimits.max)  /** @see https://github.com/vkurko/calendar/issues/333 */
             : addDay(cloneDate($_viewDates.at(-1)));
-    }
+    });
 
     let debounceHandle = {};
     function reposition() {
@@ -36,7 +38,7 @@
         }, debounceHandle, _queue2);
     }
 
-    $: {
+    run(() => {
         chunks = [];
         bgChunks = [];
         for (let event of $_events) {
@@ -53,17 +55,19 @@
         longChunks = prepareEventChunks(chunks, $_viewDates, $_dayTimeLimits, $slotDuration);
         // Run reposition only when events get changed
         reposition();
-    }
+    });
 
-    $: iChunks = $_iEvents.map(event => {
-        let chunk;
-        if (event && eventIntersects(event, start, end, resource)) {
-            chunk = createEventChunk(event, start, end);
-            prepareEventChunks([chunk], $_viewDates, $_dayTimeLimits, $slotDuration);
-        } else {
-            chunk = null;
-        }
-        return chunk;
+    run(() => {
+        iChunks = $_iEvents.map(event => {
+            let chunk;
+            if (event && eventIntersects(event, start, end, resource)) {
+                chunk = createEventChunk(event, start, end);
+                prepareEventChunks([chunk], $_viewDates, $_dayTimeLimits, $slotDuration);
+            } else {
+                chunk = null;
+            }
+            return chunk;
+        });
     });
 </script>
 
@@ -73,4 +77,4 @@
     {/each}
 </div>
 
-<svelte:window on:resize={reposition}/>
+<svelte:window onresize={reposition}/>

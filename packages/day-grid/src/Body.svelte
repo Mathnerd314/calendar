@@ -1,14 +1,16 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import Week from './Week.svelte';
 
     let {_bodyEl, _viewDates, _hiddenEvents, dayMaxEvents, hiddenDays, theme} = getContext('state');
 
-    let weeks;
-    let days;
+    let weeks = $state();
+    let days = $state();
 
-    $: {
+    run(() => {
         weeks = [];
         days = 7 - $hiddenDays.length;
         $_hiddenEvents = {};
@@ -20,7 +22,7 @@
             }
             weeks.push(dates);
         }
-    }
+    });
 </script>
 
 <div

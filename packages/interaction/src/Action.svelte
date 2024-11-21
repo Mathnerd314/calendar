@@ -1,5 +1,8 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { createBubbler, nonpassive } from 'svelte/legacy';
+
+    const bubble = createBubbler();
     import {getContext} from 'svelte';
     import {
         addDay,
@@ -50,7 +53,7 @@
     let selectStep;  // minimum selection step
     let selected;  // whether selection has been made
     let noDateClick;  // do not perform date click
-    let timer;  // timer for long press delays
+    let timer = $state();  // timer for long press delays
     let viewport;
     let margin;
 
@@ -476,12 +479,12 @@
 </script>
 
 <svelte:window
-    on:pointermove={handlePointerMove}
-    on:pointerup={handlePointerUp}
-    on:pointercancel={handlePointerUp}
-    on:scroll={handleScroll}
-    on:selectstart={createPreventDefaultHandler(complexAction)}
-    on:contextmenu={createPreventDefaultHandler(() => timer)}
-    on:touchstart={handleTouchStart}
-    on:touchmove|nonpassive
+    onpointermove={handlePointerMove}
+    onpointerup={handlePointerUp}
+    onpointercancel={handlePointerUp}
+    onscroll={handleScroll}
+    onselectstart={createPreventDefaultHandler(complexAction)}
+    oncontextmenu={createPreventDefaultHandler(() => timer)}
+    ontouchstart={handleTouchStart}
+    use:nonpassive={['touchmove', () => bubble('touchmove')]}
 />

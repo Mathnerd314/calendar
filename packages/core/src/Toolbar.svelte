@@ -1,22 +1,24 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {keys} from './lib.js';
     import Buttons from './Buttons.svelte';
 
     let {headerToolbar, theme} = getContext('state');
 
-    let sections = {
+    let sections = $state({
         start: [],
         center: [],
         end: []
-    };
+    });
 
-    $: {
+    run(() => {
         for (let key of keys(sections)) {
             sections[key] = $headerToolbar[key].split(' ').map(group => group.split(','));
         }
-    }
+    });
 </script>
 
 <nav class="{$theme.toolbar}">

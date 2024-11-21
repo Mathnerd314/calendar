@@ -1,34 +1,40 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {datesEqual, runReposition, setPayload} from '@event-calendar/core';
     import Event from './Event.svelte';
 
-    export let date;
-    export let chunks;
-    export let bgChunks;
-    export let longChunks;
-    export let iChunks = [];
-    export let resource = undefined;
+    let {
+        date,
+        chunks,
+        bgChunks,
+        longChunks,
+        iChunks = [],
+        resource = undefined
+    } = $props();
 
     let {highlightedDates, theme, _interaction, _today} = getContext('state');
 
-    let el;
-    let dayChunks, dayBgChunks;
-    let isToday;
-    let highlight;
-    let refs = [];
+    let el = $state();
+    let dayChunks = $derived(chunks.filter(chunk => datesEqual(chunk.date, date))), dayBgChunks = $derived(bgChunks.filter(bgChunk => datesEqual(bgChunk.date, date)));
+    let isToday = $derived(datesEqual(date, $_today));
+    let highlight = $derived($highlightedDates.some(d => datesEqual(d, date)));
+    let refs = $state([]);
 
-    $: dayChunks = chunks.filter(chunk => datesEqual(chunk.date, date));
-    $: dayBgChunks = bgChunks.filter(bgChunk => datesEqual(bgChunk.date, date));
+    
+    
 
-    $: isToday = datesEqual(date, $_today);
-    $: highlight = $highlightedDates.some(d => datesEqual(d, date));
+    
+    
 
     // dateFromPoint
-    $: if (el) {
-        setPayload(el, () => ({allDay: true, date, resource, dayEl: el}));
-    }
+    run(() => {
+        if (el) {
+            setPayload(el, () => ({allDay: true, date, resource, dayEl: el}));
+        }
+    });
 
     export function reposition() {
         runReposition(refs, dayChunks);
@@ -39,8 +45,8 @@
     bind:this={el}
     class="{$theme.day} {$theme.weekdays?.[date.getUTCDay()]}{isToday ? ' ' + $theme.today : ''}{highlight ? ' ' + $theme.highlight : ''}"
     role="cell"
-    on:pointerleave={$_interaction.pointer?.leave}
-    on:pointerdown={$_interaction.action?.select}
+    onpointerleave={$_interaction.pointer?.leave}
+    onpointerdown={$_interaction.action?.select}
 >
     <div class="{$theme.bgEvents}">
         {#each dayBgChunks as chunk (chunk.event)}

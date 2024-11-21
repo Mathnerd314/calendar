@@ -1,12 +1,12 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {debounce, toISOString, toLocalDate, toViewWithLocalDates, isFunction} from './lib.js';
 
     let {datesSet, _auxiliary, _activeRange, _queue, _view} = getContext('state');
 
-    // Set up datesSet callback
-    $: runDatesSet($_activeRange);
 
     let debounceHandle = {};
     function runDatesSet(_activeRange) {
@@ -20,8 +20,13 @@
             }), debounceHandle, _queue);
         }
     }
+    // Set up datesSet callback
+    run(() => {
+        runDatesSet($_activeRange);
+    });
 </script>
 
 {#each $_auxiliary as component}
-    <svelte:component this={component} />
+    {@const SvelteComponent = component}
+    <SvelteComponent />
 {/each}

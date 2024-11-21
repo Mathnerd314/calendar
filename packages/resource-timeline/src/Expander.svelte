@@ -1,15 +1,19 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {getPayload} from '@event-calendar/core';
 
-    export let resource;
+    let { resource } = $props();
 
     let {resources, theme} = getContext('state');
 
-    let payload = {};
+    let payload = $state({});
 
-    $: payload = getPayload(resource);
+    run(() => {
+        payload = getPayload(resource);
+    });
 
     function handleClick() {
         payload.expanded = !payload.expanded;
@@ -34,7 +38,7 @@
 
 <span class="{$theme.expander}">
     {#if payload.children.length}
-        <button class="{$theme.button}" on:click={handleClick}>
+        <button class="{$theme.button}" onclick={handleClick}>
             {#if payload.expanded}&minus;{:else}&plus;{/if}
         </button>
     {/if}

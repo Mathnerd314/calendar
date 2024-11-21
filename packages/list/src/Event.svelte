@@ -1,4 +1,5 @@
-<svelte:options runes={false} />
+<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
+<svelte:options runes={true} />
 <script>
     import {afterUpdate, getContext, onMount} from 'svelte';
     import {

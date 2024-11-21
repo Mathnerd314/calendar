@@ -1,5 +1,7 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {
         cloneDate,
@@ -16,29 +18,30 @@
     import Event from './Event.svelte';
     import NowIndicator from './NowIndicator.svelte';
 
-    export let date;
-    export let resource = undefined;
+    let { date, resource = undefined } = $props();
 
     let {_events, _iEvents, highlightedDates, nowIndicator, slotDuration, slotHeight, filterEventsWithResources, theme,
         resources, _interaction, _today, _slotTimeLimits} = getContext('state');
 
-    let el;
-    let chunks, bgChunks, iChunks = [];
-    let isToday, highlight;
-    let resourceFilter;
+    let el = $state();
+    let chunks = $state(), bgChunks = $state(), iChunks = $state([]);
+    let isToday = $derived(datesEqual(date, $_today)), highlight = $derived($highlightedDates.some(d => datesEqual(d, date)));
+    let resourceFilter = $state();
 
-    let start, end;
+    let start = $state(), end = $state();
 
-    $: {
+    run(() => {
         start = addDuration(cloneDate(date), $_slotTimeLimits.min);
         end = addDuration(cloneDate(date), $_slotTimeLimits.max);
-    }
+    });
 
-    $: resourceFilter = resource ?? (
-        $filterEventsWithResources ? $resources : undefined
-    );
+    run(() => {
+        resourceFilter = resource ?? (
+            $filterEventsWithResources ? $resources : undefined
+        );
+    });
 
-    $: {
+    run(() => {
         chunks = [];
         bgChunks = [];
         for (let event of $_events) {
@@ -51,14 +54,16 @@
             }
         }
         groupEventChunks(chunks);
-    }
+    });
 
-    $: iChunks = $_iEvents.map(
-        event => event && eventIntersects(event, start, end, resource) ? createEventChunk(event, start, end) : null
-    );
+    run(() => {
+        iChunks = $_iEvents.map(
+            event => event && eventIntersects(event, start, end, resource) ? createEventChunk(event, start, end) : null
+        );
+    });
 
-    $: isToday = datesEqual(date, $_today);
-    $: highlight = $highlightedDates.some(d => datesEqual(d, date));
+    
+    
 
     function dateFromPoint(x, y) {
         y -= rect(el).top;
@@ -74,17 +79,19 @@
         };
     }
 
-    $: if (el) {
-        setPayload(el, dateFromPoint);
-    }
+    run(() => {
+        if (el) {
+            setPayload(el, dateFromPoint);
+        }
+    });
 </script>
 
 <div
     bind:this={el}
     class="{$theme.day} {$theme.weekdays?.[date.getUTCDay()]}{isToday ? ' ' + $theme.today : ''}{highlight ? ' ' + $theme.highlight : ''}"
     role="cell"
-    on:pointerleave={$_interaction.pointer?.leave}
-    on:pointerdown={$_interaction.action?.select}
+    onpointerleave={$_interaction.pointer?.leave}
+    onpointerdown={$_interaction.action?.select}
 >
     <div class="{$theme.bgEvents}">
         {#each bgChunks as chunk (chunk.event)}

@@ -79,11 +79,14 @@
         }
     });
 
+    /*
+    <!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
     afterUpdate(() => {
         if (isFunction($eventAllUpdated) && !helperEvent(display)) {
             task(() => $eventAllUpdated({view: toViewWithLocalDates($_view)}), 'eau', _tasks);
         }
     });
+    */
 
     function createHandler(fn, display) {
         return !helperEvent(display) && isFunction(fn)

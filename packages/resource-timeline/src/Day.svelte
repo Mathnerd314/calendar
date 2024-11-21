@@ -1,5 +1,7 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {
         cloneDate,
@@ -16,39 +18,32 @@
     import {getSlotTimeLimits} from './lib.js';
     import Event from './Event.svelte';
 
-    export let date;
-    export let resource;
-    export let chunks;
-    export let bgChunks;
-    export let longChunks;
-    export let iChunks = [];
+    let {
+        date,
+        resource,
+        chunks,
+        bgChunks,
+        longChunks,
+        iChunks = []
+    } = $props();
 
     let {highlightedDates, slotDuration, slotWidth, theme, _interaction, _today, _dayTimeLimits} = getContext('state');
 
-    let el;
-    let dayChunks, dayBgChunks;
-    let isToday, highlight;
-    let refs = [];
-    let slotTimeLimits;
-    let allDay;
-    let pointerIdx = 1;
+    let el = $state();
+    let dayChunks = $derived(chunks.filter(chunkIntersects)), dayBgChunks = $derived(bgChunks.filter(bgChunk => (!allDay || bgChunk.event.allDay) && chunkIntersects(bgChunk)));
+    let isToday = $derived(datesEqual(date, $_today)), highlight = $derived($highlightedDates.some(d => datesEqual(d, date)));
+    let refs = $state([]);
+    let slotTimeLimits = $derived(getSlotTimeLimits($_dayTimeLimits, date));
+    let allDay = $state();
+    let pointerIdx = $state(1);
 
 
-    $: slotTimeLimits = getSlotTimeLimits($_dayTimeLimits, date);
-    $: {
-        allDay = !toSeconds($slotDuration);
-        pointerIdx = allDay ? 2 : 1;
-    }
 
-    $: dayChunks = chunks.filter(chunkIntersects);
-    $: dayBgChunks = bgChunks.filter(bgChunk => (!allDay || bgChunk.event.allDay) && chunkIntersects(bgChunk));
 
     function chunkIntersects(chunk) {
         return datesEqual(chunk.date, date);
     }
 
-    $: isToday = datesEqual(date, $_today);
-    $: highlight = $highlightedDates.some(d => datesEqual(d, date));
 
     function dateFromPoint(x, y) {
         x -= rect(el).left;
@@ -66,13 +61,24 @@
         };
     }
 
-    $: if (el) {
-        setPayload(el, dateFromPoint);
-    }
 
     export function reposition() {
         return max(...runReposition(refs, dayChunks));
     }
+    
+    run(() => {
+        allDay = !toSeconds($slotDuration);
+        pointerIdx = allDay ? 2 : 1;
+    });
+    
+    
+    
+    
+    run(() => {
+        if (el) {
+            setPayload(el, dateFromPoint);
+        }
+    });
 </script>
 
 <div
@@ -80,8 +86,8 @@
     class="{$theme.day} {$theme.weekdays?.[date.getUTCDay()]}{isToday ? ' ' + $theme.today : ''}{highlight ? ' ' + $theme.highlight : ''}"
     style="flex-grow: {allDay ? null : ceil((toSeconds(slotTimeLimits.max) - toSeconds(slotTimeLimits.min)) / toSeconds($slotDuration))}"
     role="cell"
-    on:pointerleave={$_interaction.pointer?.leave}
-    on:pointerdown={$_interaction.action?.select}
+    onpointerleave={$_interaction.pointer?.leave}
+    onpointerdown={$_interaction.action?.select}
 >
     <div class="{$theme.events}">
         {#each dayBgChunks as chunk (chunk.event)}

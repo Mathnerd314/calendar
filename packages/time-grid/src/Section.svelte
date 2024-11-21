@@ -1,13 +1,21 @@
-<svelte:options runes={false} />
+<svelte:options runes={true} />
 <script>
     import {getContext} from 'svelte';
     import {setContent} from '@event-calendar/core';
     import {createAllDayContent} from './utils.js';
+    /**
+     * @typedef {Object} Props
+     * @property {import('svelte').Snippet} [lines]
+     * @property {import('svelte').Snippet} [children]
+     */
+
+    /** @type {Props} */
+    let { lines, children } = $props();
 
     let {allDayContent, theme, _times} = getContext('state');
 
-    let allDayText;
-    $: allDayText = createAllDayContent($allDayContent);
+    let allDayText = $derived(createAllDayContent($allDayContent));
+    
 </script>
 
 <div class="{$theme.sidebar}">
@@ -17,6 +25,6 @@
     {/each}
 </div>
 <div class="{$theme.days}" role="row">
-    <div class="{$theme.lines}"><slot name="lines"></slot></div>
-    <slot></slot>
+    <div class="{$theme.lines}">{@render lines?.()}</div>
+    {@render children?.()}
 </div>
