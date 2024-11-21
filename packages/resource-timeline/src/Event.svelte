@@ -1,5 +1,7 @@
 <svelte:options runes={false} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext, onMount} from 'svelte';
     import {
         createEventContent,
@@ -17,29 +19,33 @@
     } from '@event-calendar/core';
     import {repositionEvent} from './lib.js';
 
-    export let chunk;
-    export let dayChunks = [];
-    export let longChunks = {};
-    export let resource = undefined;
+    let {
+        chunk,
+        dayChunks = [],
+        longChunks = {},
+        resource = undefined
+    } = $props();
 
     let {displayEventEnd, eventAllUpdated, eventBackgroundColor, eventTextColor,eventColor, eventContent, eventClick,
         eventDidMount, eventClassNames, eventMouseEnter, eventMouseLeave, resources, slotDuration, slotWidth, theme,
         _view, _intlEventTime, _interaction, _iClasses, _tasks} = getContext('state');
 
-    let el;
-    let event;
-    let display;
-    let classes;
-    let style;
-    let content;
-    let timeText;
-    let onclick;
-    let margin = helperEvent(chunk.event.display) ? 1 : 0;
-    let width = 0;
+    let el = $state();
+    let event = $state();
+    let display = $state();
+    let classes = $state();
+    let style = $state();
+    let content = $state();
+    let timeText = $state();
+    let onclick = $derived(!bgEvent(display) && createHandler($eventClick, display));
+    let margin = $state(helperEvent(chunk.event.display) ? 1 : 0);
+    let width = $state(0);
 
-    $: event = chunk.event;
+    run(() => {
+        event = chunk.event;
+    });
 
-    $: {
+    run(() => {
         display = event.display;
 
         // Style
@@ -82,10 +88,12 @@
             ...$_iClasses([], event),
             ...createEventClasses($eventClassNames, event, $_view)
         ].join(' ');
-    }
+    });
 
     // Content
-    $: [timeText, content] = createEventContent(chunk, $displayEventEnd, $eventContent, $theme, $_intlEventTime, $_view);
+    run(() => {
+        [timeText, content] = createEventContent(chunk, $displayEventEnd, $eventContent, $theme, $_intlEventTime, $_view);
+    });
 
     onMount(() => {
         if (isFunction($eventDidMount)) {
@@ -120,7 +128,7 @@
     }
 
     // Onclick handler
-    $: onclick = !bgEvent(display) && createHandler($eventClick, display);
+    
 
     export function reposition() {
         if (!el) {
@@ -133,22 +141,22 @@
 </script>
 
 {#if width > 0}
-    <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+    {@const SvelteComponent = $_interaction.resizer}
     <article
         bind:this={el}
         class="{classes}"
         {style}
         role="{onclick ? 'button' : undefined}"
         tabindex="{onclick ? 0 : undefined}"
-        on:click={onclick}
-        on:keydown={onclick && keyEnter(onclick)}
-        on:mouseenter={createHandler($eventMouseEnter, display)}
-        on:mouseleave={createHandler($eventMouseLeave, display)}
-        on:pointerdown={!bgEvent(display) && !helperEvent(display) && createDragHandler($_interaction)}
+        {onclick}
+        onkeydown={onclick && keyEnter(onclick)}
+        onmouseenter={createHandler($eventMouseEnter, display)}
+        onmouseleave={createHandler($eventMouseLeave, display)}
+        onpointerdown={!bgEvent(display) && !helperEvent(display) && createDragHandler($_interaction)}
     >
         <div class="{$theme.eventBody}" use:setContent={content}></div>
-        <svelte:component
-            this={$_interaction.resizer}
+        <SvelteComponent
             {event}
             on:pointerdown={createDragHandler($_interaction, 'x')}
         />

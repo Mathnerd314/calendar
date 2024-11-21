@@ -1,5 +1,7 @@
 <svelte:options runes={false} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext} from 'svelte';
     import {max} from '@event-calendar/core';
     import Label from './Label.svelte';
@@ -7,10 +9,12 @@
 
     let {_viewResources, _headerEl, _resHs, _sidebarEl, _nestedResources, theme} = getContext('state');
 
-    let titleHeight = 0;
+    let titleHeight = $state(0);
 
     // <!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
-    $: titleHeight = $_headerEl.clientHeight;
+    run(() => {
+        titleHeight = $_headerEl.clientHeight;
+    });
 </script>
 
 <div class="{$theme.sidebar}">

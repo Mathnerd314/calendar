@@ -1,30 +1,33 @@
 <svelte:options runes={false} />
 <script>
+    import { run } from 'svelte/legacy';
+
     import {getContext, onMount, createEventDispatcher} from 'svelte';
     import {setContent, toLocalDate, isFunction} from '@event-calendar/core';
 
-    export let resource;
-    export let date = undefined;
+    let { resource, date = undefined } = $props();
 
     let {resourceLabelContent, resourceLabelDidMount, _intlDayHeaderAL} = getContext('state');
 
     const dispatch = createEventDispatcher();
 
-    let el;
-    let content;
-    let ariaLabel;
+    let el = $state();
+    let content = $state();
+    let ariaLabel = $state();
 
     // Content
-    $: if ($resourceLabelContent) {
-        content = isFunction($resourceLabelContent)
-            ? $resourceLabelContent({
-                resource,
-                date: date ? toLocalDate(date) : undefined,
-            })
-            : $resourceLabelContent;
-    } else {
-        content = resource.title;
-    }
+    run(() => {
+        if ($resourceLabelContent) {
+            content = isFunction($resourceLabelContent)
+                ? $resourceLabelContent({
+                    resource,
+                    date: date ? toLocalDate(date) : undefined,
+                })
+                : $resourceLabelContent;
+        } else {
+            content = resource.title;
+        }
+    });
 
     onMount(() => {
         if (isFunction($resourceLabelDidMount)) {
@@ -36,12 +39,14 @@
         }
     });
 
-    $: if (date) {
-            ariaLabel = $_intlDayHeaderAL.format(date) + ', ' + el.innerText;
-        } else {
-            ariaLabel = undefined;
-            dispatch('text', el.innerText);
-        }
+    run(() => {
+        if (date) {
+                ariaLabel = $_intlDayHeaderAL.format(date) + ', ' + el.innerText;
+            } else {
+                ariaLabel = undefined;
+                dispatch('text', el.innerText);
+            }
+    });
 </script>
 
 <span
