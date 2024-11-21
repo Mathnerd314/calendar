@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {addDay, cloneDate, toViewWithLocalDates, setContent, bgEvent, isFunction} from '@event-calendar/core';

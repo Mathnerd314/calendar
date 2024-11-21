@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {afterUpdate, getContext, onMount} from 'svelte';
     import {

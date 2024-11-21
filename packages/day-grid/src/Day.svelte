@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext, tick} from 'svelte';
     import {datesEqual, setContent, createEventChunk, addDay, cloneDate, assign, setPayload, toISOString,

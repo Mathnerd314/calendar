@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext, tick} from 'svelte';
     import {ancestor, rect, setContent, outsideEvent, keyEnter, toISOString} from '@event-calendar/core';

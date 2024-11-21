@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {setContent} from '@event-calendar/core';

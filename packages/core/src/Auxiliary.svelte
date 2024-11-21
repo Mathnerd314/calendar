@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {debounce, toISOString, toLocalDate, toViewWithLocalDates, isFunction} from './lib.js';

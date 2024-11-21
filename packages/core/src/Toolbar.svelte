@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {keys} from './lib.js';

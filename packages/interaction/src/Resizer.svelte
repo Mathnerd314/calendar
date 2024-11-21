@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {bgEvent, helperEvent} from '@event-calendar/core';

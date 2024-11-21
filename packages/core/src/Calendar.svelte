@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import './styles/index.scss';
     import {setContext, beforeUpdate, afterUpdate} from 'svelte';

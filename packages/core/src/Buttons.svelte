@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {createDate, cloneDate, setContent, setMidnight, nextDate, prevDate} from './lib.js';

@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext} from 'svelte';
     import {datesEqual, runReposition, setPayload} from '@event-calendar/core';

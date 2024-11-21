@@ -1,3 +1,4 @@
+<svelte:options runes={false} />
 <script>
     import {getContext, afterUpdate} from 'svelte';
     import {max} from '@event-calendar/core';
