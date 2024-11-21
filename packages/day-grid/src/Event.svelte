@@ -1,7 +1,8 @@
-<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
 <svelte:options runes={true} />
 <script>
-    import {afterUpdate, getContext, onMount} from 'svelte';
+    import { run } from 'svelte/legacy';
+
+    import {getContext, onMount} from 'svelte';
     import {
         ancestor,
         createEventClasses,
@@ -22,29 +23,42 @@
         isFunction
     } from '@event-calendar/core';
 
-    export let chunk;
-    export let longChunks = {};
-    export let inPopup = false;
-    export let dates = [];
+    /**
+     * @typedef {Object} Props
+     * @property {any} chunk
+     * @property {any} [longChunks]
+     * @property {boolean} [inPopup]
+     * @property {any} [dates]
+     */
+
+    /** @type {Props} */
+    let {
+        chunk,
+        longChunks = {},
+        inPopup = false,
+        dates = []
+    } = $props();
 
     let {dayMaxEvents, displayEventEnd, eventAllUpdated, eventBackgroundColor, eventTextColor, eventClick, eventColor,
         eventContent, eventClassNames, eventDidMount, eventMouseEnter, eventMouseLeave, resources, theme,
         _view, _intlEventTime, _interaction, _iClasses, _hiddenEvents, _popupDate, _tasks} = getContext('state');
 
-    let el;
-    let event;
-    let classes;
-    let style;
-    let content;
-    let timeText;
-    let margin = 1;
-    let hidden = false;
-    let display;
-    let onclick;
+    let el = $state();
+    let event = $state();
+    let classes = $state();
+    let style = $state();
+    let content = $state();
+    let timeText = $state();
+    let margin = $state(1);
+    let hidden = $state(false);
+    let display = $state();
+    let onclick = $derived(createHandler($eventClick, display));
 
-    $: event = chunk.event;
+    run(() => {
+        event = chunk.event;
+    });
 
-    $: {
+    run(() => {
         display = event.display;
 
         // Class & Style
@@ -81,10 +95,12 @@
             ...$_iClasses([], event),
             ...createEventClasses($eventClassNames, event, $_view)
         ].join(' ');
-    }
+    });
 
     // Content
-    $: [timeText, content] = createEventContent(chunk, $displayEventEnd, $eventContent, $theme, $_intlEventTime, $_view);
+    run(() => {
+        [timeText, content] = createEventContent(chunk, $displayEventEnd, $eventContent, $theme, $_intlEventTime, $_view);
+    });
 
     onMount(() => {
         if (isFunction($eventDidMount)) {
@@ -97,11 +113,14 @@
         }
     });
 
+    /*
+    <!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
     afterUpdate(() => {
         if (isFunction($eventAllUpdated) && !helperEvent(display)) {
             task(() => $eventAllUpdated({view: toViewWithLocalDates($_view)}), 'eau', _tasks);
         }
     });
+    */
 
     function createHandler(fn, display) {
         return !helperEvent(display) && isFunction(fn)
@@ -172,25 +191,26 @@
     }
 
     // Onclick handler
-    $: onclick = createHandler($eventClick, display);
+
+
+    const SvelteComponent = $derived($_interaction.resizer);
 </script>
 
-<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <article
     bind:this={el}
     class="{classes}"
     {style}
     role="{onclick ? 'button' : undefined}"
     tabindex="{onclick ? 0 : undefined}"
-    on:click={onclick || undefined}
-    on:keydown={onclick && keyEnter(onclick)}
-    on:mouseenter={createHandler($eventMouseEnter, display)}
-    on:mouseleave={createHandler($eventMouseLeave, display)}
-    on:pointerdown={!helperEvent(display) && createDragHandler($_interaction)}
+    onclick={onclick || undefined}
+    onkeydown={onclick && keyEnter(onclick)}
+    onmouseenter={createHandler($eventMouseEnter, display)}
+    onmouseleave={createHandler($eventMouseLeave, display)}
+    onpointerdown={!helperEvent(display) && createDragHandler($_interaction)}
 >
     <div class="{$theme.eventBody}" use:setContent={content}></div>
-    <svelte:component
-        this={$_interaction.resizer}
+    <SvelteComponent
         {event}
         on:pointerdown={createDragHandler($_interaction, 'x')}
     />

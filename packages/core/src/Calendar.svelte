@@ -24,7 +24,7 @@
 
     let { plugins = [], options = {} } = $props();
 
-    let state = $state(new State(plugins, options));
+    let state = new State(plugins, options);
     setContext('state', state);
 
     let {_viewComponent, _bodyEl, _interaction, _iClass, _events, _queue, _queue2, _tasks, _scrollable,

@@ -1,7 +1,8 @@
-<!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
 <svelte:options runes={true} />
 <script>
-    import {afterUpdate, getContext, onMount} from 'svelte';
+    import { run } from 'svelte/legacy';
+
+    import {getContext, onMount} from 'svelte';
     import {
         createEventContent,
         toEventWithLocalDates,
@@ -15,23 +16,27 @@
         isFunction
     } from '@event-calendar/core';
 
-    export let chunk;
+    let { chunk } = $props();
 
     let {displayEventEnd, eventAllUpdated, eventBackgroundColor, eventTextColor, eventColor, eventContent,
         eventClassNames, eventClick, eventDidMount, eventMouseEnter, eventMouseLeave, resources, theme,
         _view, _intlEventTime, _interaction, _tasks} = getContext('state');
 
-    let el;
-    let event;
-    let classes;
-    let style;
-    let content;
-    let timeText;
-    let onclick;
+    let el = $state();
+    let event = $state();
+    let classes = $state();
+    let style = $state();
+    //  Content
+    let content = $derived(createEventContent(chunk, $displayEventEnd, $eventContent, $theme, $_intlEventTime, $_view));
+    //  Content
+    let timeText = $derived(undefined);
+    let onclick = $derived(createHandler($eventClick));
 
-    $: event = chunk.event;
+    run(() => {
+        event = chunk.event;
+    });
 
-    $: {
+    run(() => {
         // Class & Style
         style = '';
         let bgColor = event.backgroundColor || resourceBackgroundColor(event, $resources) || $eventBackgroundColor || $eventColor;
@@ -48,12 +53,9 @@
             $theme.event,
             ...createEventClasses($eventClassNames, event, $_view)
         ].join(' ');
-    }
+    });
 
-    $: {
-        // Content
-        [timeText, content] = createEventContent(chunk, $displayEventEnd, $eventContent, $theme, $_intlEventTime, $_view);
-    }
+
 
     onMount(() => {
         if (isFunction($eventDidMount)) {
@@ -66,11 +68,14 @@
         }
     });
 
+    /*
+    <!-- @migration-task Error while migrating Svelte code: Can't migrate code with afterUpdate. Please migrate by hand. -->
     afterUpdate(() => {
         if (isFunction($eventAllUpdated)) {
             task(() => $eventAllUpdated({view: toViewWithLocalDates($_view)}), 'eau', _tasks);
         }
     });
+    */
 
     function createHandler(fn) {
         return isFunction(fn)
@@ -79,20 +84,20 @@
     }
 
     // Onclick handler
-    $: onclick = createHandler($eventClick);
+
 </script>
 
-<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <article
     bind:this={el}
     class="{classes}"
     role="{onclick ? 'button' : undefined}"
     tabindex="{onclick ? 0 : undefined}"
-    on:click={onclick}
-    on:keydown={onclick && keyEnter(onclick)}
-    on:mouseenter={createHandler($eventMouseEnter)}
-    on:mouseleave={createHandler($eventMouseLeave)}
-    on:pointerdown={$_interaction.action?.noAction}
+    {onclick}
+    onkeydown={onclick && keyEnter(onclick)}
+    onmouseenter={createHandler($eventMouseEnter)}
+    onmouseleave={createHandler($eventMouseLeave)}
+    onpointerdown={$_interaction.action?.noAction}
 >
     <div class="{$theme.eventTag}" {style}></div>
     <div class="{$theme.eventBody}" use:setContent={content}></div>
