@@ -29,6 +29,6 @@
   "dependencies": {
     "@event-calendar/core": "~3.7.0",
     "@event-calendar/time-grid": "~3.7.0",
-    "svelte": "^5.0.0"
+    "svelte": "^5.2.7"
   }
 }
